@@ -67,42 +67,42 @@ class DatasetService:
             table_counter = 0
             
             # Process each table/sheet
-            for table_name, df in dataframes.items():
+            for table_name, dataframe in dataframes.items():
                 # Generate unique DuckDB table name (use timestamp + counter)
                 timestamp = int(time.time())
                 table_counter += 1
                 duckdb_table_name = f"ds_{timestamp}_{table_counter}"
                 
                 # Create table in DuckDB
-                self.duckdb_manager.create_table_from_dataframe(duckdb_table_name, df)
+                self.duckdb_manager.create_table_from_dataframe(duckdb_table_name, dataframe)
                 
                 # Create table record
-                table = self.dataset_repo.create_table(
+                table_record = self.dataset_repo.create_table(
                     dataset_id=dataset_id,
                     table_name=table_name,
                     original_sheet_name=table_name,
-                    row_count=len(df),
-                    column_count=len(df.columns),
+                    row_count=len(dataframe),
+                    column_count=len(dataframe.columns),
                     duckdb_table_name=duckdb_table_name
                 )
                 
                 # Extract and store column metadata
-                metadata = self.file_parser.extract_metadata(df)
-                for col_metadata in metadata["columns"]:
+                metadata = self.file_parser.extract_metadata(dataframe)
+                for column_metadata in metadata["columns"]:
                     self.dataset_repo.create_column(
-                        table_id=str(table.id),
-                        column_name=col_metadata["name"],
-                        data_type=col_metadata["data_type"],
-                        is_nullable=str(col_metadata["is_nullable"]),
+                        table_id=str(table_record.id),
+                        column_name=column_metadata["name"],
+                        data_type=column_metadata["data_type"],
+                        is_nullable=str(column_metadata["is_nullable"]),
                         is_primary_key="false",
-                        sample_values=str(col_metadata["sample_values"]),
-                        min_value=str(col_metadata.get("min_value")),
-                        max_value=str(col_metadata.get("max_value")),
-                        unique_count=col_metadata["unique_count"],
-                        null_count=col_metadata["null_count"]
+                        sample_values=str(column_metadata["sample_values"]),
+                        min_value=str(column_metadata.get("min_value")),
+                        max_value=str(column_metadata.get("max_value")),
+                        unique_count=column_metadata["unique_count"],
+                        null_count=column_metadata["null_count"]
                     )
                 
-                total_rows += len(df)
+                total_rows += len(dataframe)
                 table_count += 1
             
             # Update dataset with totals

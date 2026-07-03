@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 from config.settings import settings
 from config.logging import logger, setup_logging
 from dependencies.database import init_db
@@ -14,12 +15,24 @@ from middlewares.request_logging import request_logging
 # Initialize logging
 setup_logging()
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Application lifespan management
+    logger.info("Starting application...")
+    init_db()
+    logger.info("Application started successfully")
+    yield
+    logger.info("Shutting down application...")
+
+
 # Create FastAPI application
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
     description="AI-powered Financial Analytics Backend",
-    debug=settings.debug
+    debug=settings.debug,
+    lifespan=lifespan
 )
 
 # Add CORS middleware
@@ -40,20 +53,6 @@ app.include_router(upload_router)
 app.include_router(health_router)
 app.include_router(dashboard_router)
 app.include_router(query_router)
-
-
-@app.on_event("startup")
-async def startup_event():
-    # Initialize database tables on startup
-    logger.info("Starting application...")
-    init_db()
-    logger.info("Application started successfully")
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    # Cleanup on shutdown
-    logger.info("Shutting down application...")
 
 
 @app.get("/")
