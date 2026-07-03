@@ -377,51 +377,6 @@ docker build -t finance-analytics-backend .
 docker run -p 8000:8000 --env-file .env finance-analytics-backend
 ```
 
-### Production Checklist
-
-- [ ] Set `ENVIRONMENT=production`
-- [ ] Configure allowed CORS origins
-- [ ] Set up SSL/TLS certificates
-- [ ] Configure rate limiting
-- [ ] Set up monitoring and logging
-- [ ] Configure backup strategy
-- [ ] Set up database backups
-- [ ] Configure OpenAI API key
-- [ ] Review and update security headers
-- [ ] Set up CI/CD pipeline
-
-## 🖼️ Screenshots
-
-### Upload Interface
-![Upload Interface](screenshots/upload.png)
-
-### Dashboard View
-![Dashboard](screenshots/dashboard.png)
-
-### Query Interface
-![Query Interface](screenshots/query.png)
-
-## 🎬 Demo
-
-![Demo GIF](demo.gif)
-
-## 🔮 Future Improvements
-
-- [ ] User authentication and authorization
-- [ ] Multi-dataset support with joins
-- [ ] Advanced visualization charts
-- [ ] Export results to PDF/Excel
-- [ ] Query history and saved queries
-- [ ] Real-time data streaming
-- [ ] Advanced AI models (GPT-4, Claude)
-- [ ] Custom prompt templates
-- [ ] Data source connectors (APIs, databases)
-- [ ] Scheduled reports and alerts
-- [ ] Collaborative workspaces
-- [ ] API rate limiting and quotas
-- [ ] Advanced caching strategies
-- [ ] Multi-language support
-- [ ] Mobile-responsive design improvements
 
 ## 🧪 Testing
 
@@ -484,10 +439,6 @@ MIT License - see LICENSE file for details
 3. Make your changes
 4. Write tests for new functionality
 5. Submit a pull request
-
-## 📧 Support
-
-For support, email support@finance-analytics.com or open an issue on GitHub.
 
 ## 📊 Version
 
