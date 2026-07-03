@@ -17,11 +17,19 @@ class OpenAIClient:
     def __init__(self, api_key: str = None):
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         self.client = None
-        self.model = "gpt-4-turbo-preview"
+        self.model = "gpt-3.5-turbo"
         self.max_retries = 3
-        
-        if self.api_key:
-            self.client = OpenAI(api_key=self.api_key)
+        self._initialized = False
+    
+    def _ensure_client(self):
+        # Lazy initialization of OpenAI client
+        if not self._initialized and self.api_key:
+            try:
+                self.client = OpenAI(api_key=self.api_key)
+                self._initialized = True
+            except Exception as e:
+                logger.error(f"Failed to initialize OpenAI client: {e}")
+                raise AIServiceError(f"Failed to initialize OpenAI client: {str(e)}")
     
     def chat_completion(
         self,
@@ -31,6 +39,8 @@ class OpenAIClient:
         response_format: dict = None
     ) -> str:
         # Send chat completion request to OpenAI
+        self._ensure_client()
+        
         if not self.client:
             raise AIServiceError("OpenAI client not initialized. Please set OPENAI_API_KEY environment variable.")
         
