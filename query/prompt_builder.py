@@ -31,11 +31,16 @@ USER QUESTION:
 REQUIREMENTS:
 1. Use the actual table and column names from the schema
 2. Use appropriate JOINs based on the relationships
-3. Return only the SQL query, no explanations
-4. Use DuckDB SQL syntax
+3. Return only the SQL query, no explanations, no markdown fences
+4. Use DuckDB SQL syntax specifically:
+   - Date columns are stored as VARCHAR, always cast them: CAST(date_column AS DATE)
+   - For month grouping use: strftime(CAST(date_column AS DATE), '%Y-%m')
+   - Do NOT use DATE() function — it does not exist in DuckDB
+   - For date truncation use: date_trunc('month', CAST(date_column AS TIMESTAMP))
 5. Handle NULL values appropriately
 6. Use proper aggregation when needed
 7. Limit results to 100 rows for performance
+8. End query with a semicolon
 
 Generate the SQL query:"""
             

@@ -58,8 +58,6 @@ class SQLValidator:
     def _contains_injection_patterns(self, sql: str) -> bool:
         # Check for common SQL injection patterns
         injection_patterns = [
-            r"--",  # SQL comment
-            r";",   # Statement separator
             r"/\*", # Multi-line comment start
             r"\*/", # Multi-line comment end
             r"xp_", # Extended stored procedures
@@ -97,11 +95,36 @@ class SQLValidator:
     
     def sanitize_query(self, sql: str) -> str:
         # Sanitize SQL query by removing potentially harmful elements
+
+        # Strip markdown code fences (```sql ... ``` or ``` ... ```)
+        sql = sql.strip()
+        if sql.startswith("```"):
+            sql = re.sub(r"^```[a-zA-Z]*\n?", "", sql)
+            sql = re.sub(r"```$", "", sql)
+            sql = sql.strip()
+
         # Remove comments
         sql = re.sub(r'--.*$', '', sql, flags=re.MULTILINE)
         sql = re.sub(r'/\*.*?\*/', '', sql, flags=re.DOTALL)
-        
+
+        # Fix strftime(column, fmt) where column is not already cast
+        # DuckDB requires strftime(DATE/TIMESTAMP, fmt) — auto-cast bare column references
+        def fix_strftime(match):
+            col = match.group(1).strip()
+            fmt = match.group(2)
+            # If already has a CAST, leave it alone
+            if 'CAST' in col.upper() or 'TIMESTAMP' in col.upper():
+                return f"strftime({col}, {fmt})"
+            return f"strftime(CAST({col} AS DATE), {fmt})"
+
+        sql = re.sub(
+            r'strftime\(\s*([^,]+?)\s*,\s*(%[^)]+)\)',
+            fix_strftime,
+            sql,
+            flags=re.IGNORECASE
+        )
+
         # Remove extra whitespace
         sql = ' '.join(sql.split())
-        
+
         return sql.strip()

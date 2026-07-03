@@ -12,24 +12,27 @@ class AIServiceError(BaseApplicationError):
 
 
 class OpenAIClient:
-    # Wrapper for OpenAI API with retry logic and error handling
+    # Wrapper for Groq API (OpenAI-compatible) with retry logic and error handling
     
     def __init__(self, api_key: str = None):
-        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
+        self.api_key = api_key or settings.openai_api_key
         self.client = None
-        self.model = "gpt-3.5-turbo"
+        self.model = "llama-3.3-70b-versatile"
         self.max_retries = 3
         self._initialized = False
     
     def _ensure_client(self):
-        # Lazy initialization of OpenAI client
+        # Lazy initialization of Groq client using OpenAI-compatible interface
         if not self._initialized and self.api_key:
             try:
-                self.client = OpenAI(api_key=self.api_key)
+                self.client = OpenAI(
+                    api_key=self.api_key,
+                    base_url="https://api.groq.com/openai/v1"
+                )
                 self._initialized = True
             except Exception as e:
-                logger.error(f"Failed to initialize OpenAI client: {e}")
-                raise AIServiceError(f"Failed to initialize OpenAI client: {str(e)}")
+                logger.error(f"Failed to initialize Groq client: {e}")
+                raise AIServiceError(f"Failed to initialize Groq client: {str(e)}")
     
     def chat_completion(
         self,
@@ -38,23 +41,26 @@ class OpenAIClient:
         max_tokens: int = 2000,
         response_format: dict = None
     ) -> str:
-        # Send chat completion request to OpenAI
+        # Send chat completion request to Groq
         self._ensure_client()
         
         if not self.client:
-            raise AIServiceError("OpenAI client not initialized. Please set OPENAI_API_KEY environment variable.")
+            raise AIServiceError("Groq client not initialized. Please set OPENAI_API_KEY environment variable.")
         
         try:
-            response = self.client.chat.completions.create(
+            kwargs = dict(
                 model=self.model,
                 messages=messages,
                 temperature=temperature,
                 max_tokens=max_tokens,
-                response_format=response_format
             )
+            # Groq supports response_format for json_object mode
+            if response_format:
+                kwargs["response_format"] = response_format
+            response = self.client.chat.completions.create(**kwargs)
             return response.choices[0].message.content
         except Exception as e:
-            logger.error(f"OpenAI API error: {e}")
+            logger.error(f"Groq API error: {e}")
             raise AIServiceError(f"AI service error: {str(e)}")
     
     def get_token_count(self, messages: list) -> int:

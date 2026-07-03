@@ -25,6 +25,12 @@ class Settings(BaseSettings):
     log_level: str = Field(default="INFO", description="Log level")
     log_format: str = Field(default="json", description="Log format")
 
+    # OpenAI Settings
+    openai_api_key: str = Field(default="", description="OpenAI API key")
+
+    # CORS Settings
+    cors_origins: str = Field(default="*", description="CORS allowed origins (comma-separated)")
+
     class Config:
         env_file = ".env"
         case_sensitive = False

@@ -9,7 +9,33 @@ from config.logging import logger
 router = APIRouter(prefix="/api/v1/dashboard", tags=["dashboard"])
 
 
-@router.get("/{dataset_id}", response_model=DashboardResponse)
+@router.get(
+    "/{dataset_id}",
+    response_model=DashboardResponse,
+    summary="Get Dashboard",
+    description="Retrieve comprehensive dashboard with schema analysis, relationships, and KPIs for a specific dataset",
+    responses={
+        200: {
+            "description": "Dashboard generated successfully",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "dataset_id": "uuid",
+                        "schema": {"columns": []},
+                        "relationships": [],
+                        "kpis": []
+                    }
+                }
+            }
+        },
+        404: {
+            "description": "Dataset not found"
+        },
+        500: {
+            "description": "Internal server error"
+        }
+    }
+)
 async def get_dashboard(dataset_id: str, db: Session = Depends(get_db)):
     # Get dashboard with schema, relationships, and KPIs for a dataset
     try:

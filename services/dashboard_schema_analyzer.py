@@ -62,15 +62,20 @@ class DashboardSchemaAnalyzer:
         ]
     
     def _convert_to_relationship_schemas(self, relationships_data: List[Dict]) -> List[RelationshipSchema]:
-        # Convert raw relationship data to RelationshipSchema objects
-        return [
-            RelationshipSchema(
+        # Convert raw relationship data to RelationshipSchema objects, skip incomplete ones
+        result = []
+        for rel in relationships_data:
+            # Skip relationships with missing required fields
+            if not rel.get("target_table") or not rel.get("target_column"):
+                continue
+            if not rel.get("source_table") or not rel.get("source_column"):
+                continue
+            result.append(RelationshipSchema(
                 source_table=rel["source_table"],
                 source_column=rel["source_column"],
                 target_table=rel["target_table"],
                 target_column=rel["target_column"],
-                relationship_type=rel["relationship_type"],
-                confidence=rel["confidence"]
-            )
-            for rel in relationships_data
-        ]
+                relationship_type=rel.get("relationship_type", "unknown"),
+                confidence=rel.get("confidence", 0.0)
+            ))
+        return result

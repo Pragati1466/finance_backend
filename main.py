@@ -67,10 +67,7 @@ app = FastAPI(
 )
 
 # Add CORS middleware with production-ready configuration
-allowed_origins = ["*"] if settings.environment == "development" else [
-    "https://your-frontend-domain.com",
-    "https://www.your-frontend-domain.com"
-]
+allowed_origins = settings.cors_origins.split(",") if settings.cors_origins else ["*"]
 
 app.add_middleware(
     CORSMiddleware,
@@ -90,7 +87,7 @@ async def add_security_headers(request, call_next):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-    response.headers["Content-Security-Policy"] = "default-src 'self'"
+    response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline' cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' cdn.jsdelivr.net; img-src 'self' data:"
     return response
 
 # Add custom middleware

@@ -51,3 +51,10 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
+
+# Sample data (optional - uncomment if you want to ignore)
+# sample_data/
+
+# Frontend build artifacts (if any)
+frontend/node_modules/
+frontend/dist/

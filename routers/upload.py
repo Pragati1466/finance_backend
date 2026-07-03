@@ -16,6 +16,81 @@ router = APIRouter(prefix="/api/v1/upload", tags=["upload"])
 
 
 @router.post(
+    "/demo",
+    summary="Load Demo Dataset",
+    description="Load a sample financial dataset for testing without uploading files",
+    responses={
+        200: {
+            "description": "Demo dataset loaded successfully",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "message": "Demo dataset loaded successfully",
+                        "dataset_id": "uuid",
+                        "status": "ready"
+                    }
+                }
+            }
+        },
+        500: {
+            "description": "Internal server error"
+        }
+    }
+)
+async def load_demo_dataset(db: Session = Depends(get_db)):
+    # Load demo dataset from sample data
+    try:
+        import shutil
+        from pathlib import Path
+        
+        # Copy sample file to uploads
+        sample_file = Path("sample_data/financial_sample.csv")
+        if not sample_file.exists():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Sample data file not found"
+            )
+        
+        upload_dir = Path(settings.upload_dir)
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Generate unique filename
+        unique_filename = f"{uuid.uuid4()}_financial_sample.csv"
+        file_path = upload_dir / unique_filename
+        
+        # Copy sample file
+        shutil.copy(sample_file, file_path)
+        
+        # Get file size
+        file_size = file_path.stat().st_size
+        
+        # Create dataset record
+        dataset_service = DatasetService(db)
+        result = dataset_service.create_dataset(
+            name="Demo Financial Dataset",
+            original_filename="financial_sample.csv",
+            file_format="csv",
+            file_path=str(file_path),
+            file_size=file_size
+        )
+        
+        # Process dataset
+        processed = dataset_service.process_dataset(result["dataset_id"])
+        
+        return {
+            "message": "Demo dataset loaded successfully",
+            "dataset_id": result["dataset_id"],
+            "status": processed["status"]
+        }
+    except Exception as e:
+        logger.error(f"Failed to load demo dataset: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to load demo dataset: {str(e)}"
+        )
+
+
+@router.post(
     "/",
     summary="Upload File",
     description="Upload a CSV or Excel file for financial analysis",
@@ -97,12 +172,12 @@ async def upload_file(
             )
             
             # Process dataset synchronously for now (will be async in production)
-            dataset_service.process_dataset(result["dataset_id"])
+            processed = dataset_service.process_dataset(result["dataset_id"])
             
             return {
                 "message": "File uploaded and processed successfully",
                 "dataset_id": result["dataset_id"],
-                "status": result["status"]
+                "status": processed["status"]
             }
         except Exception as e:
             logger.error(f"Failed to process dataset: {e}")

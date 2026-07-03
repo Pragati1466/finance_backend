@@ -25,10 +25,44 @@ class ResponseParser:
             if cleaned_text.endswith("```"):
                 cleaned_text = cleaned_text[:-3]
             cleaned_text = cleaned_text.strip()
-            
-            parsed = json.loads(cleaned_text)
+
+            # Extract only the first complete JSON object/array
+            # to handle cases where the LLM adds extra text after the JSON
+            start = cleaned_text.find("{") if "{" in cleaned_text else cleaned_text.find("[")
+            if start == -1:
+                raise ParseError("No JSON object found in response")
+
+            # Use a brace-counting approach to find the matching closing brace
+            opener = cleaned_text[start]
+            closer = "}" if opener == "{" else "]"
+            depth = 0
+            end = start
+            in_string = False
+            escape_next = False
+            for i, ch in enumerate(cleaned_text[start:], start):
+                if escape_next:
+                    escape_next = False
+                    continue
+                if ch == "\\" and in_string:
+                    escape_next = True
+                    continue
+                if ch == '"':
+                    in_string = not in_string
+                    continue
+                if in_string:
+                    continue
+                if ch == opener:
+                    depth += 1
+                elif ch == closer:
+                    depth -= 1
+                    if depth == 0:
+                        end = i
+                        break
+
+            json_str = cleaned_text[start:end + 1]
+            parsed = json.loads(json_str)
             return parsed
-        except json.JSONDecodeError as e:
+        except (ParseError, json.JSONDecodeError) as e:
             logger.error(f"Failed to parse JSON response: {e}")
             raise ParseError(f"Invalid JSON response: {str(e)}")
     
