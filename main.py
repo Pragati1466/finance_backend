@@ -6,6 +6,7 @@ from dependencies.database import init_db
 from routers.upload import router as upload_router
 from routers.health import router as health_router
 from routers.dashboard import router as dashboard_router
+from routers.query import router as query_router
 from middlewares.error_handler import error_handler
 from middlewares.request_logging import request_logging
 
@@ -38,6 +39,7 @@ app.middleware("http")(error_handler)
 app.include_router(upload_router)
 app.include_router(health_router)
 app.include_router(dashboard_router)
+app.include_router(query_router)
 
 
 @app.on_event("startup")

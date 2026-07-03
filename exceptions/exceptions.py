@@ -54,3 +54,9 @@ class DatabaseError(BaseApplicationError):
         if original_error:
             message = f"{message} - {original_error}"
         super().__init__(message, {"operation": operation, "original_error": original_error})
+
+
+class AIServiceError(BaseApplicationError):
+    # Raised when AI service operation fails
+    def __init__(self, message: str):
+        super().__init__(message, {})
