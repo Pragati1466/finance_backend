@@ -4,6 +4,7 @@ from config.settings import settings
 from config.logging import logger
 from database.base import Base
 from models.dataset import Dataset, Table, Column
+from models.ai_models import Relationship, KPI
 
 # Create SQLAlchemy engine
 engine = create_engine(
