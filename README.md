@@ -335,20 +335,6 @@ docker build -t finance-analytics-backend .
 docker run -p 8000:8000 --env-file .env finance-analytics-backend
 ```
 
-### Production Checklist
-
-- [ ] Set `ENVIRONMENT=production`
-- [ ] Configure allowed CORS origins
-- [ ] Set up SSL/TLS certificates
-- [ ] Configure rate limiting
-- [ ] Set up monitoring and logging
-- [ ] Configure backup strategy
-- [ ] Set up database backups
-- [ ] Configure OpenAI API key
-- [ ] Review and update security headers
-- [ ] Set up CI/CD pipeline
-
-## Troubleshooting
 
 ### Common Issues
 
@@ -379,11 +365,3 @@ docker run -p 8000:8000 --env-file .env finance-analytics-backend
 
 MIT License - see LICENSE file for details
 
-## Support
-
-For support, email support@finance-analytics.com or open an issue on GitHub.
-
-## Version
-
-Current version: 1.0.0
-Build date: July 3, 2026 at 7:14 PM
